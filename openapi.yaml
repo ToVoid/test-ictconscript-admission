@@ -1,0 +1,63 @@
+openapi: 3.0.3
+info:
+  title: Sample API
+  version: 1.0.0
+  description: This API allows users to read and create new logs.
+servers:
+  - url: https://test-ictconscript-admission-s8qs.onrender.com
+paths:
+  /entries:
+    get:
+      summary: Get all entries.
+      description: Returns a list of all of the entries in this logbook.
+      responses:
+        '200':
+          description: A list of entries.
+          content:
+            application/json:
+              schema:
+                type: array
+                contains: 'src/entry.rs/EntryInJSON'
+        '500':
+          description: Issues with database
+    post:
+      summary: Create a new entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'src/entry.rs/PostEntry'
+      responses:
+        '201':
+          description: Entry created successfully
+          content:
+            application/json:
+              schema:
+                $ref: 'src/entry.rs/EntryInJSON'
+        '400':
+          description: Fields missing, not json, or the length of the title is over 120.
+        '500':
+          description: Issues with database
+  /entries/<id>:
+    get:
+      summary: Get the entry with that id.
+      responses:
+        '200':
+          description: A entry.
+          content:
+            application/json:
+              schema:
+                $ref: 'src/entry.rs/EntryInJSON'
+        '404':
+          description: The entry with that id can't be found.
+        '500':
+          description: Issues with database
+  /health:
+    get:
+      summary: A basic health check of the server.
+      responses:
+        '200':
+          description: Server is ok!
+          content: "OK" 
+  
