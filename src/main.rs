@@ -21,23 +21,27 @@ fn read_sample_data() -> io::Result<Vec<Entry>> {
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
 
-    let data: Vec<EntryInJSON> = serde_json::from_str(&contents).unwrap();
-
-    log::debug!("{:#?}", &data);
-
-    Ok(data.into_iter().map(Entry::try_from).map(Result::unwrap).collect::<_>())
+    Ok(
+        serde_json::from_str::<Vec<EntryInJSON>>(&contents)
+            .expect("Sample data is somehow wrong.")
+            .into_iter()
+            .map(Entry::try_from)
+            .map(Result::unwrap)
+            .collect::<_>()
+    )
 }
 
 async fn setup_db(pool: &db::Pool) -> Result<(), error::Error> {
     let pool = pool.clone();
 
-    // let connection = web::block(move ||)
-    //     .await?
-    //     .map_err(error::ErrorInternalServerError)?;
 
     web::block(move || {
         let connection = pool.get()
         .map_err(|_| rusqlite::Error::InvalidQuery)?;
+
+        if connection.table_exists(None, "entries")? {
+            return Ok::<_, rusqlite::Error>(());
+        }
 
         connection.execute(
             "CREATE TABLE entries (
