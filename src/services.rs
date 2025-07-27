@@ -43,6 +43,7 @@ pub async fn get_entries_with_id(
     }
 }
 
+// A small litle function that returns the current time correctly formatted.
 fn get_current_iso_time() -> String {
     use chrono::prelude::*;
 
@@ -56,6 +57,7 @@ pub async fn post_entries(
     pool: web::Data<db::Pool>,
     req_body: String
 ) -> impl Responder {
+    // I didn't know how else to do this, but this works.
     let max_id = db::execute(&pool, db::get_max_id).await;
 
     if max_id.is_err() {
@@ -88,7 +90,7 @@ pub async fn post_entries(
 
         log::info!("{}", body);
 
-        HttpResponse::Ok()
+        HttpResponse::Created()
             .content_type("application/json")
             .body(body)
     } else {

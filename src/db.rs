@@ -1,5 +1,3 @@
-// use actix_web::{Error};
-
 use actix_web::{error, web};
 use rusqlite::Statement;
 
@@ -8,18 +6,19 @@ use crate::Entry;
 pub type Pool = r2d2::Pool::<r2d2_sqlite::SqliteConnectionManager>;
 type DBConnection = r2d2::PooledConnection<r2d2_sqlite::SqliteConnectionManager>;
 
+// A little function that executes a querry on the database.
 pub async fn execute<T: Send + 'static>(
     pool: &Pool,
     query: impl FnOnce(DBConnection) -> rusqlite::Result<T> + Send + 'static
 ) -> Result<T, error::Error> {
     let pool = pool.clone();
 
-    let connecection = web::block(move || pool.get())
+    let connection = web::block(move || pool.get())
         .await?
         .map_err(error::ErrorInternalServerError)?;
 
     web::block(move || {
-        query(connecection)
+        query(connection)
     })
     .await?
     .map_err(error::ErrorInternalServerError)

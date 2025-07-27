@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+// A struct that is sent to client.
 #[allow(non_snake_case)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EntryInJSON {
@@ -24,6 +25,8 @@ impl From<Entry> for EntryInJSON {
     }
 }
 
+// A struct that is used in the post /entries service to send a new entry from
+// client to server.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PostEntry {
     pub title: String,
@@ -32,6 +35,7 @@ pub struct PostEntry {
     pub lon: Option<f64>
 }
 
+// A struct that is basically the same as in the entries table of the database. 
 pub struct Entry {
     pub id: u32,
     pub title: String,
@@ -42,7 +46,11 @@ pub struct Entry {
 }
 
 impl Entry {
-    pub fn from_post_entry(post_entry: PostEntry, id: u32, iso_time: String) -> Self {
+    pub fn from_post_entry(
+        post_entry: PostEntry,
+        id: u32,
+        iso_time: String
+    ) -> Self {
         Self {
             id,
             title: post_entry.title,

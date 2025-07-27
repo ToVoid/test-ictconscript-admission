@@ -34,10 +34,9 @@ fn read_sample_data() -> io::Result<Vec<Entry>> {
 async fn setup_db(pool: &db::Pool) -> Result<(), error::Error> {
     let pool = pool.clone();
 
-
     web::block(move || {
         let connection = pool.get()
-        .map_err(|_| rusqlite::Error::InvalidQuery)?;
+            .map_err(|_| rusqlite::Error::InvalidQuery)?;
 
         if connection.table_exists(None, "entries")? {
             return Ok::<_, rusqlite::Error>(());
@@ -61,7 +60,7 @@ async fn setup_db(pool: &db::Pool) -> Result<(), error::Error> {
             VALUES (?1, ?2, ?3, ?4, ?5, ?6);"
         )?;
     
-        for entry in read_sample_data().unwrap() {
+        for entry in read_sample_data().expect("Couldn't get sample data.") {
             statement.execute(rusqlite::params![
                 entry.id,
                 entry.title,

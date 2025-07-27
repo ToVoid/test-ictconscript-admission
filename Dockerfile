@@ -9,6 +9,8 @@ COPY . .
 RUN cargo build --release
 
 
+# I've decided to split docker into a builder and a runner stages, because
+# when running it doesn't need for example the rust compiler.
 FROM debian:trixie-20250721-slim AS runner
 
 WORKDIR /usr/src/test-ictconscript-admission

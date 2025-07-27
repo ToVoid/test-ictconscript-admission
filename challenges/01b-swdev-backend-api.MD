@@ -77,5 +77,5 @@ Add the **public base URL** to your fork’s root README.
 | ✔︎ | `docker build .` succeeds and `docker run -p 8000:8000` serves the API locally. |
 | ✔︎ | Public URL in root README responds to `GET /health` with `200 OK`. |
 | ✔︎ | `GET /entries` returns the 10 sample items. |
-|   | README contains route docs **or** OpenAPI spec link. |
+| ✔︎ | README contains route docs **or** OpenAPI spec link. |
 - [ ] Return your done Test to ```ictvmhaku.pvjjk at mil.fi```.                  
