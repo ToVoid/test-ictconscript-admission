@@ -24,6 +24,14 @@ impl From<Entry> for EntryInJSON {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PostEntry {
+    pub title: String,
+    pub body: String,
+    pub lat: Option<f64>,
+    pub lon: Option<f64>
+}
+
 pub struct Entry {
     pub id: u32,
     pub title: String,
@@ -31,6 +39,19 @@ pub struct Entry {
     pub iso_time: String,
     pub lat: Option<f64>,
     pub lon: Option<f64>
+}
+
+impl Entry {
+    pub fn from_post_entry(post_entry: PostEntry, id: u32, iso_time: String) -> Self {
+        Self {
+            id,
+            title: post_entry.title,
+            body: post_entry.body,
+            iso_time,
+            lat: post_entry.lat,
+            lon: post_entry.lon
+        }
+    }
 }
 
 impl TryFrom<EntryInJSON> for Entry {
