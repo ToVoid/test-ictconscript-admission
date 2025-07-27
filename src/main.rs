@@ -1,18 +1,23 @@
 use std::io::{self, Read};
 
-use actix_web::{web, error, App, HttpServer};
+use actix_web::{error, middleware::Logger, web, App, HttpServer};
 use r2d2_sqlite::SqliteConnectionManager;
 
 mod db;
 mod services;
 mod entry;
 
-use entry::Entry;
+use entry::{Entry, EntryInJSON};
 
-use crate::entry::EntryInJSON;
+const SAMPLE_DATA_PATH: &str = "sample-data/data.json";
 
-fn get_sample_data() -> io::Result<Vec<Entry>> {
-    let mut file = std::fs::File::open("sample-data/data.json")?;
+const DATABASE_SAVEFILE: &str = "logbook.db"; 
+
+const ADDRESS: &str = "0.0.0.0";
+const PORT: u16 = 8000; 
+
+fn read_sample_data() -> io::Result<Vec<Entry>> {
+    let mut file = std::fs::File::open(SAMPLE_DATA_PATH)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
 
@@ -52,7 +57,7 @@ async fn setup_db(pool: &db::Pool) -> Result<(), error::Error> {
             VALUES (?1, ?2, ?3, ?4, ?5, ?6);"
         )?;
     
-        for entry in get_sample_data().unwrap() {
+        for entry in read_sample_data().unwrap() {
             statement.execute(rusqlite::params![
                 entry.id,
                 entry.title,
@@ -71,9 +76,9 @@ async fn setup_db(pool: &db::Pool) -> Result<(), error::Error> {
 
 #[actix_web::main]
 async fn main() -> io::Result<()> {
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("debug"));
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
-    let manager = SqliteConnectionManager::memory();
+    let manager = SqliteConnectionManager::file(DATABASE_SAVEFILE);
     let pool = r2d2::Pool::builder()
         .max_size(15)
         .build(manager)
@@ -83,7 +88,7 @@ async fn main() -> io::Result<()> {
         .await
         .map_err(|err| { io::Error::other(err.to_string()) })?;
 
-    log::info!("starting HTTP server at http://localhost:8080");
+    log::info!("starting HTTP server on port {}", PORT);
             
     HttpServer::new(move || {
         App::new()
@@ -92,8 +97,9 @@ async fn main() -> io::Result<()> {
             .service(services::get_entries_with_id)
             .service(services::post_entries)
             .service(services::health)
+            .wrap(Logger::new("%a \"%r\" %s %b %{User-Agent}i"))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind((ADDRESS, PORT))?
     .run()
     .await
 }
